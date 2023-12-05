@@ -64,7 +64,7 @@ const Dashboard = () => {
   return (
     <div>
       <Chart
-        width={'100%'}
+        width={'150%'}
         height={'300px'}
         chartType="ColumnChart"
         loader={<div>Loading Chart</div>}
@@ -76,7 +76,7 @@ const Dashboard = () => {
             titleTextStyle: { bold: true },
             slantedText: true,
             slantedTextAngle: 45,
-            textStyle: { fontSize: 10 },
+            textStyle: { fontSize: 5 },
             ticks: [],
           },
           
