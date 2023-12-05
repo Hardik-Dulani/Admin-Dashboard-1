@@ -1,49 +1,117 @@
-// Your React component
-
 import React, { useState, useEffect } from 'react';
+import './index.css';
+import { Chart } from 'react-google-charts';
 
-const YourComponent = () => {
+// Move prepareChartDataRegion outside the component
+const generateColorPaletteRegion = () => [
+  '#FFD700', '#FF69B4', '#00CED1', '#FF6347', '#87CEEB',
+  '#FF8C00', '#48D1CC', '#FF4500', '#DDA0DD', '#20B2AA',
+  '#FF69B4', '#FFD700', '#BA55D3', '#87CEEB', '#FF6347',
+  '#FF8C00', '#48D1CC', '#DDA0DD', '#20B2AA', '#BA55D3',
+];
+
+const prepareChartDataRegion = (data, selectedContinent = 'World') => {
+  const regionCounts = data.reduce((counts, item) => {
+    let region = item.region || 'Other Regions';
+
+    if (region === 'Other Regions') {
+      region = 'World';
+    }
+
+    counts[region] = (counts[region] || 0) + 1;
+    return counts;
+  }, {});
+
+  delete regionCounts['World'];
+
+  const chartData = Object.entries(regionCounts).map(([region, count], index) => [
+    region,
+    count,
+    generateColorPaletteRegion()[index % generateColorPaletteRegion().length],
+  ]);
+  
+  chartData.unshift(['Region', '', { role: 'style' }]);
+
+  return chartData;
+};
+
+const Dashboard = () => {
   const [data, setData] = useState([]);
+  const [selectedContinent, setSelectedContinent] = useState('World');
+  const [chartData, setChartData] = useState([]);
+
+  const regionsForContinent = {
+    Africa: ['Central Africa', 'Northern Africa', 'Southern Africa'],
+    America: ['Northern America', 'Central America', 'South America'],
+    Asia: ['Southern Asia', 'Central Asia', 'Eastern Asia', 'South-Eastern Asia'],
+    Europe: ['Eastern Europe', 'Western Europe', 'Northern Europe', 'Southern Europe'],
+  };
 
   useEffect(() => {
     const fetchData = async () => {
-      
-      const response = await fetch('http://127.0.0.1:8000/api/');
-      console.log('got connected');
-      
-      if (!response.ok) {
-        console.error(`HTTP error! Status: ${response.status}`);
-      } else {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/');
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
         const jsonData = await response.json();
-        console.log('json data:', jsonData);
-      
         setData(jsonData.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
       }
-      
-      
     };
 
     fetchData();
   }, []);
 
-  // Inside the return statement of your React component
+  useEffect(() => {
+    const updateChartData = () => {
+      if (selectedContinent === 'World') {
+        setChartData(prepareChartDataRegion(data));
+      } else {
+        const selectedRegions = regionsForContinent[selectedContinent] || [];
+        const filteredData = data.filter(item => {
+          const region = item.region || 'Other Regions';
+          return selectedRegions.includes(region);
+        });
+        setChartData(prepareChartDataRegion(filteredData));
+      }
+    };
 
-return (
-  <div>
-    <h1>Your Data</h1>
-    <ul>
-      {data.map(item => (
-        <li key={item.id}>
-          <strong>ID:</strong> {item.id}, {' '}
-          <strong>End Year:</strong> {item.end_year}, {' '}
-          <strong>Intensity:</strong> {item.intensity}, {' '}
-          {/* Repeat for other fields */}
-        </li>
-      ))}
-    </ul>
-  </div>
-);
+    updateChartData();
+  }, [selectedContinent, data]);
 
+  const handleContinentChange = (event) => {
+    const newContinent = event.target.value;
+    setSelectedContinent(newContinent);
+  };
+
+  return (
+    <div className="row">
+      <label htmlFor="continentDropdown">Select Continent: </label>
+      <select id="continentDropdown" value={selectedContinent} onChange={handleContinentChange}>
+        <option value="World">World</option>
+        <option value="Africa">Africa</option>
+        <option value="America">America</option>
+        <option value="Asia">Asia</option>
+        <option value="Europe">Europe</option>
+      </select>
+
+      <Chart
+        width={'90%'}
+        height={'500px'}
+        chartType="PieChart"
+        loader={<div>Loading Chart</div>}
+        data={chartData}
+        options={{
+          title: 'Number of Data Points by Region',
+          titleTextStyle: { bold: true, color: 'white' },
+          backgroundColor: 'black',
+        }}
+        rootProps={{ 'data-testid': '1' }}
+      />
+    </div>
+  );
 };
 
-export default YourComponent;
+export default Dashboard;
