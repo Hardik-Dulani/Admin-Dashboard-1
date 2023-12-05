@@ -6,11 +6,13 @@ import { Chart } from 'react-google-charts';
 
 // Move prepareChartDataRegion outside the component
 const generateColorPaletteRegion = () => [
-  '#FFD700', '#FF69B4', '#00CED1', '#FF6347', '#87CEEB',
-  '#FF8C00', '#48D1CC', '#FF4500', '#DDA0DD', '#20B2AA',
-  '#FF69B4', '#FFD700', '#BA55D3', '#87CEEB', '#FF6347',
-  '#FF8C00', '#48D1CC', '#DDA0DD', '#20B2AA', '#BA55D3',
+  '#FFB6C1', '#FFD700', '#B0C4DE', '#87CEEB', '#98FB98',
+  '#FFA07A', '#DDA0DD', '#87CEFA', '#F08080', '#E0FFFF',
+  '#C71585', '#00FA9A', '#FF4500', '#6A5ACD', '#FF69B4',
+  '#00CED1', '#FFE4B5', '#8A2BE2', '#20B2AA', '#FF6347',
 ];
+
+
 
 const prepareChartDataRegion = (data, selectedContinent = 'World') => {
   const regionCounts = data.reduce((counts, item) => {
@@ -99,7 +101,7 @@ const Dashboard = () => {
 
 
 return (
-  <div className="flex justify-between items-center">
+  <div className="flex justify-between items-center" style={{backgroundColor: "blue"}}>
     <div className="mr-4">
       <label htmlFor="continentDropdown" className="text-white">Select Continent: </label>
       <select
@@ -125,8 +127,9 @@ return (
         data={chartData}
         options={{
           title: 'Number of Data Points by Region',
-          titleTextStyle: { bold: true, color: 'white' },
-          backgroundColor: 'black',
+          titleTextStyle: { bold: true, color: 'black' },
+          backgroundColor: 'light grey',
+          slices: generateColorPaletteRegion().map(color => ({ color }))
         }}
         rootProps={{ 'data-testid': '1' }}
       />
