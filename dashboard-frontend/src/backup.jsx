@@ -100,40 +100,122 @@ const Dashboard = () => {
 
 
 
-return (
-  <div className="flex justify-between items-center" style={{backgroundColor: "blue"}}>
-    <div className="mr-4">
-      <label htmlFor="continentDropdown" className="text-white">Select Continent: </label>
-      <select
-        id="continentDropdown"
-        value={selectedContinent}
-        onChange={handleContinentChange}
-        className="p-2 border rounded-md bg-gray-800 text-white"
-      >
-        <option value="World">World</option>
-        <option value="Africa">Africa</option>
-        <option value="America">America</option>
-        <option value="Asia">Asia</option>
-        <option value="Europe">Europe</option>
-      </select>
-    </div>
+return (<div className="bg-gray-100 font-sans">
 
-    <div className="flex-grow">
-      <Chart
-        width={'90%'}
-        height={'500px'}
-        chartType="PieChart"
-        loader={<div>Loading Chart</div>}
-        data={chartData}
-        options={{
-          title: 'Number of Data Points by Region',
-          titleTextStyle: { bold: true, color: 'black' },
-          backgroundColor: 'light grey',
-          slices: generateColorPaletteRegion().map(color => ({ color }))
-        }}
-        rootProps={{ 'data-testid': '1' }}
-      />
+<div className="flex h-screen">
+
+    {/* <!-- Sidebar --> */}
+    <aside className="bg-gray-800 text-gray-500 w-64 flex-shrink-0">
+        <div className="p-6">
+            <h2 className="text-2xl font-semibold text-white">Admin Dashboard</h2>
+        </div>
+        <nav className="space-y-2 py-4">
+            {/* <!-- Add your sidebar navigation links here --> */}
+            <a href="#" className="block px-4 py-2 text-sm  rmt-2 transition duration-300 ease-in-out focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50
+                          hover:border-blue-500 hover:ring hover:ring-blue-200 hover:ring-opacity-50">Dashboard</a>
+            <a href="#" className="block px-4 py-2 text-sm  rmt-2 transition duration-300 ease-in-out focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50
+                          hover:border-blue-500 hover:ring hover:ring-blue-200 hover:ring-opacity-50">Charts</a>
+            {/* <!-- Add more links as needed --> */}
+        </nav>
+    </aside>
+
+    {/* <!-- Main Content --> */}
+    
+    <div className="flex-1 overflow-x-hidden overflow-y-auto p-6">
+
+        <div className="flex flex-wrap justify-between mb-6">
+
+            {/* <!-- Chart 1 and Chart 2 (First Row) --> */}
+            <div className="flex w-full mb-6 opacity-80 transition-opacity duration-500 ease-in-out transform hover:opacity-100 ">
+                {/* <!-- Chart 1 --> */}
+                <div className="flex-1 mr-4 bg-white p-6 rounded-lg shadow-md">
+                    <label  className="text-sm font-semibold">Region-wise Interactions</label>
+                    <select
+                        id="continentDropdown"
+                        value={selectedContinent}
+                        onChange={handleContinentChange}
+                        className="block w-full p-2 border border-gray-300 rounded mt-2 transition duration-300 ease-in-out focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50
+                          hover:border-blue-500 hover:ring hover:ring-blue-200 hover:ring-opacity-50">
+                        <option value="World">World</option>
+                        <option value="Africa" className="w-1/2">Africa</option>
+                        <option value="America">America</option>
+                        <option value="Asia">Asia</option>
+                        <option value="Europe">Europe</option>
+                      </select>
+
+                    
+                    <Chart
+                      width="400" height="200"
+                      chartType="PieChart"
+                      loader={<div>Loading Chart</div>}
+                      data={chartData}
+                      options={{
+                        
+                        titleTextStyle: { bold: true, color: 'black' },
+                        backgroundColor: 'light grey',
+                        slices: generateColorPaletteRegion().map(color => ({ color }))
+                      }}
+                        rootProps={{ 'data-testid': '1' }}
+                      />
+                    
+                </div>
+
+                {/* <!-- Chart 2 --> */}
+                <div className="flex-1 bg-white p-6 rounded-lg shadow-md">
+                    <label className="text-sm font-semibold">Chart 2 Filter:</label>
+                    <select id="chart2Filter" className="block w-full p-2 border border-gray-300 rounded mt-2">
+                        <option value="option1">Option 1</option>
+                        <option value="option2">Option 2</option>
+                        <option value="option3">Option 3</option>
+                    </select>
+                    <canvas id="chart2" width="400" height="200" className="mt-4"></canvas>
+                </div>
+            </div>
+
+            {/* <!-- Chart 3 (Second Row - Full Width) --> */}
+            <div className="w-full mb-6 opacity-80 transition-opacity duration-500 ease-in-out transform hover:opacity-100">
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                    <label className="text-sm font-semibold">Chart 3 Filter:</label>
+                    <select id="chart3Filter" className="block w-full p-2 border border-gray-300 rounded mt-2">
+                        <option value="option1">Option 1</option>
+                        <option value="option2">Option 2</option>
+                        <option value="option3">Option 3</option>
+                    </select>
+                    <canvas id="chart3" width="800" height="200" className="mt-4"></canvas>
+                </div>
+            </div>
+
+            {/* <!-- Chart 4 and Chart 5 (Third Row) --> */}
+            <div className="flex w-full  opacity-80 transition-opacity duration-500 ease-in-out transform hover:opacity-100">
+                {/* <!-- Chart 4 --> */}
+                <div className="flex-1 mr-4 bg-white p-6 rounded-lg shadow-md">
+                    <label  className="text-sm font-semibold">Chart 4 Filter:</label>
+                    <select id="chart4Filter" className="block w-full p-2 border border-gray-300 rounded mt-2">
+                        <option value="option1">Option 1</option>
+                        <option value="option2">Option 2</option>
+                        <option value="option3">Option 3</option>
+                    </select>
+                    <canvas id="chart4" width="400" height="200" className="mt-4"></canvas>
+                </div>
+
+                {/* <!-- Chart 5 --> */}
+                <div className="flex-1 bg-white p-6 rounded-lg shadow-md">
+                    <label  className="text-sm font-semibold">Chart 5 Filter:</label>
+                    <select id="chart5Filter" className="block w-full p-2 border border-gray-300 rounded mt-2">
+                        <option value="option1">Option 1</option>
+                        <option value="option2">Option 2</option>
+                        <option value="option3">Option 3</option>
+                    </select>
+                    <canvas id="chart5" width="400" height="200" className="mt-4"></canvas>
+                </div>
+            </div>
+
+        </div>
+
     </div>
+</div>
+
+  
   </div>
 );
 
