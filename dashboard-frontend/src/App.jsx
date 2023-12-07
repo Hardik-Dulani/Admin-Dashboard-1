@@ -52,10 +52,153 @@ const prepareChartDataRegion = (data, selectedContinent = 'World') => {
   return chartDataRegion;
 };
 
+
+
+const generateColorPaletteSector = () => [
+  '#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6',
+  '#34495e', '#16a085', '#c0392b', '#d35400', '#8e44ad',
+  '#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6',
+];
+
+
+const prepareChartDataSector = (data) => {
+  const sectorCounts = data.reduce((counts, item) => {
+    const sector = item.sector || 'Unknown';
+
+    counts[sector] = (counts[sector] || 0) + 1;
+    return counts;
+  }, {});
+
+  const chartDataSector = Object.entries(sectorCounts).map(([sector, count], index) => [
+    sector,
+    count,
+    generateColorPaletteSector()[index % generateColorPaletteSector().length],
+  ]);
+
+  chartDataSector.unshift(['Sector', 'Count', { role: 'style' }]);
+
+  return chartDataSector;
+};
+
+
 const Dashboard = () => {
   const [data, setData] = useState([]);
   const [selectedContinent, setSelectedContinent] = useState('World');
   const [chartDataRegion, setChartDataRegion] = useState([]);
+  const [chartDataSector, setChartDataSector] = useState([]);
+
+
+
+  const [selectedOption, setSelectedOption] = useState('region');
+  const [highestIntensity, setHighestIntensity] = useState('');
+  const [highestLikelihood, setHighestLikelihood] = useState('');
+  const [highestRelevance, setHighestRelevance] = useState('');
+  
+
+  useEffect(() => {
+    if (selectedOption) {
+      const { nameIntensity, nameLikelihood, nameRelevance,  averages } = calculateAverages(data, selectedOption);
+      setHighestIntensity(
+        nameIntensity !== undefined && !isNaN(averages.highestIntensity)
+          ? `${nameIntensity} - ${averages.highestIntensity.toFixed(2)}`
+          : 'N/A'
+      );
+      setHighestLikelihood(
+        nameLikelihood !== undefined && !isNaN(averages.highestLikelihood)
+          ? `${nameLikelihood} - ${averages.highestLikelihood.toFixed(2)}`
+          : 'N/A'
+      );
+      setHighestRelevance(
+        nameRelevance !== undefined && !isNaN(averages.highestRelevance)
+          ? `${nameRelevance} - ${averages.highestRelevance.toFixed(2)}`
+          : 'N/A'
+      );
+      
+    }
+  }, [selectedOption, data]);
+
+  const calculateAverages = (data, category) => {
+    const categoryValues = data
+      .filter((item) => item[category] !== null && item.intensity !== null)
+      .reduce((acc, item) => {
+        acc[item[category]] = acc[item[category]] || { intensity: 0, likelihood: 0, relevance: 0, count: 0, name: '' };
+        acc[item[category]].intensity += parseFloat(item.intensity);
+        acc[item[category]].likelihood += parseFloat(item.likelihood);
+        acc[item[category]].relevance += parseFloat(item.relevance);
+      
+        acc[item[category]].count += 1;
+        acc[item[category]].name = item[category];
+        return acc;
+      }, {});
+  
+    const validDataPoints = Object.keys(categoryValues);
+  
+    if (validDataPoints.length === 0) {
+      console.error(`No valid data points for category: ${category}`);
+      return {
+        nameIntensity: undefined,
+        nameLikelihood: undefined,
+        nameRelevance: undefined,
+        
+        averages: {
+          highestIntensity: NaN,
+          highestLikelihood: NaN,
+          highestRelevance: NaN,
+        },
+      };
+    }
+  
+    const averages = validDataPoints.map((key) => ({
+      category: key,
+      intensity: categoryValues[key].intensity / categoryValues[key].count,
+      likelihood: categoryValues[key].likelihood / categoryValues[key].count,
+      relevance: categoryValues[key].relevance / categoryValues[key].count,
+  
+    }));
+  
+    console.log('Averages:', averages);
+  
+    const highestIntensityItem = averages.reduce((prev, current) =>
+      prev.intensity > current.intensity ? prev : current
+    );
+    const highestLikelihoodItem = averages.reduce((prev, current) =>
+      prev.likelihood > current.likelihood ? prev : current
+    );
+    const highestRelevanceItem = averages.reduce((prev, current) =>
+      prev.relevance > current.relevance ? prev : current
+    );
+   
+  
+    console.log('Highest Intensity Item:', highestIntensityItem);
+  
+    // Check if the highest intensity item is not undefined
+    const nameIntensity = highestIntensityItem ? highestIntensityItem.category : undefined;
+    const nameLikelihood = highestLikelihoodItem ? highestLikelihoodItem.category : undefined;
+    const nameRelevance = highestRelevanceItem ? highestRelevanceItem.category : undefined;
+    
+  
+    return {
+      nameIntensity,
+      nameLikelihood,
+      nameRelevance,
+      
+      averages: {
+        highestIntensity: isNaN(highestIntensityItem.intensity) ? NaN : highestIntensityItem.intensity,
+        highestLikelihood: isNaN(highestLikelihoodItem.likelihood) ? NaN : highestLikelihoodItem.likelihood,
+        highestRelevance: isNaN(highestRelevanceItem.relevance) ? NaN : highestRelevanceItem.relevance
+      },
+    };
+  };
+
+  const options = ['region', 'sector', 'topic'];
+
+
+
+
+
+
+
+
 
   const regionsForContinent = {
     Africa: ['Central Africa', 'Northern Africa', 'Southern Africa'],
@@ -102,13 +245,19 @@ const Dashboard = () => {
     const newContinent = event.target.value;
     setSelectedContinent(newContinent);
   };
-
+  
 // Region Chart Complete
 
+  useEffect(() => {
+      const updateSectorChartData = () => {
+        setChartDataSector(prepareChartDataSector(data));
+      };
+
+      updateSectorChartData();
+    }, [data]);
 
 
-
-
+    
 
 
 
@@ -217,7 +366,53 @@ return (
 
     {/* <!-- Main Content --> */}
     
-    <div className="flex-1 overflow-x-hidden overflow-y-auto p-6">
+<div className="flex-1 overflow-x-hidden overflow-y-auto p-6">
+  
+<row>
+  <span class="gray-300 p-6 font-bold"> Choose a parameter:</span>
+<select
+  className="mb-4 px-3 py-2 border border-gray-300  p-2 border border-gray-300 rounded mt-2 transition duration-300 ease-in-out focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50
+  hover:border-blue-500 hover:ring hover:ring-blue-200 hover:ring-opacity-50" 
+  onChange={(e) => setSelectedOption(e.target.value)}
+  value={selectedOption}
+>
+  {options.map((option) => (
+    <option key={option} value={option}>
+      {option}
+    </option>
+  ))}
+</select>
+</row>
+<div class="flex flex-wrap pb-5 ">
+
+  <div class="w-full md:w-1/3 pr-3">
+    <div class="bg-white rounded-lg border border-gray-300 p-6 ">
+      <h2 class="text-xl font-semibold mb-4">Highest Avg. Intensity</h2>
+      {/* <!-- Placeholder for the actual chart --> */}
+      <div id="chart1" class="border-t mt-4 font-bold pt-4">{highestIntensity}</div>
+    </div>
+  </div>
+
+  <div class="w-full md:w-1/3 pr-3">
+    <div class="bg-white rounded-lg border border-gray-300 p-6">
+      <h2 class="text-xl font-semibold mb-4">Highest Avg. Relevance</h2>
+      {/* <!-- Placeholder for the actual chart --> */}
+      <div id="chart2" class="border-t mt-4 font-bold pt-4">{highestRelevance}</div>
+    </div>
+  </div>
+
+  <div class="w-full md:w-1/3 ">
+    <div class="bg-white rounded-lg border border-gray-300 p-6">
+      <h2 class="text-xl font-semibold mb-4">Highest Avg. Likelihood</h2>
+      {/* <!-- Placeholder for the actual chart --> */}
+      <div id="chart3" class="border-t mt-4 font-bold pt-4">{highestLikelihood}</div>
+    </div>
+  </div>
+
+</div>
+
+
+
 
         <div className="flex flex-wrap justify-between mb-6">
 
@@ -268,14 +463,27 @@ return (
 
 
                 {/* <!-- Chart 2 --> */}
-                <div className="flex-1 bg-white p-6 rounded-lg shadow-md">
-                    <label className="text-sm font-semibold">Chart 2 Filter:</label>
-                    <select id="chart2Filter" className="block w-full p-2 border border-gray-300 rounded mt-2">
-                        <option value="option1">Option 1</option>
-                        <option value="option2">Option 2</option>
-                        <option value="option3">Option 3</option>
-                    </select>
-                    <canvas id="chart2" width="400" height="200" className="mt-4"></canvas>
+                <div className="flex-1 mr-4 bg-white p-6 rounded-lg shadow-md">
+                    <label  className="text-sm font-semibold">Sector-wise Interactions</label>
+                    
+
+                    
+                    <Chart
+                      
+                      chartType="PieChart"
+                      loader={<div>Loading Chart</div>}
+                      data={chartDataSector}
+                      options={{
+                        
+                        titleTextStyle: { bold: true, color: 'black' },
+                        backgroundColor: 'light grey',
+                        slices: generateColorPaletteSector().map(color => ({ color })),
+                        
+                      }}
+                      
+                        rootProps={{ 'data-testid': '1' }}
+                      />
+                    
                 </div>
             </div>
 
