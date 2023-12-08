@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from ..models import MyData
+from app.models import MyData
 
 def get_data(request):
     data = MyData.objects.values()
